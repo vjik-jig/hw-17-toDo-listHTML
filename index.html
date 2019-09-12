@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Task List in Single-page</title>
+    <style>
+      .note-div > div {
+        color: red;
+      }
+      div > p {
+        margin: 0;
+        display: inline-block;
+      }
+      .done > p {
+        color: blue;
+        text-decoration: line-through;
+      }
+    </style>
+  </head>
+  <body>
+    <form method="get" class="note-form">
+      <input
+        type="text"
+        value=""
+        placeholder="Type here your Note text"
+        class="input-field"
+      />
+      <input type="button" value="Add" class="addNote" />
+    </form>
+    <div class="note-div"></div>
+
+    <script>
+      const toDo = {
+        task: [],
+        createTask: function(str) {
+          if (!this.checkUnique(str)) {
+            this.task.push({
+              text: str,
+              isDone: false,
+              id: this.createId()
+            });
+          } else {
+            return alert("This Note already exist!");
+          }
+        },
+        deleteTask: function(item) {          
+          const indexOfTask = this.task.findIndex(function(value) {
+            return value.id === item;
+          });
+          this.task.splice(indexOfTask, 1);          
+        },
+
+        checkDone: function(item) {
+          var indexOfTask = this.task.findIndex(function(value) {
+            return value.id === item;
+          });
+          this.task[indexOfTask].isDone = !this.task[indexOfTask].isDone;
+        },        
+
+        // Вспомагательные методы
+
+        checkUnique: function(str) {
+          return this.task.some(function(item) {
+            return item.text === str;
+          });
+        },
+
+        createId: function() {
+          return (
+            "_" +
+            Math.random()
+              .toString(36)
+              .substr(2, 9)
+          );
+        }
+      };
+
+      const buttonAddNote = document.querySelector(".addNote");
+      const inputField = document.querySelector(".input-field");
+      buttonAddNote.addEventListener("click", () => {
+        toDo.createTask(inputField.value);
+        document.querySelector(".note-form").reset();
+      });
+      inputField.addEventListener("keypress", e => {
+        if (e.keyCode === 13) {
+          e.preventDefault();
+          toDo.createTask(inputField.value);
+          document.querySelector(".note-form").reset();
+        }
+      });
+
+      const $noteDiv = document.querySelector(".note-div");
+
+      const renderHtml = function(e) {
+        const $divWrapper = document.createElement("div");
+        $noteDiv.append($divWrapper);
+        toDo.task.forEach(item => {
+          const $div = document.createElement("div");
+          $div.classList.add(item.id);
+          $div.innerHTML =
+            "<p>" +
+            item.text +
+            "</p>" +
+            " " +
+            "<button class='btn-done'>Done</button>" +
+            " " +
+            "<button class='btn-delete'>Delete</button>";
+          if(item.isDone) {
+            $div.classList.add('done');
+          };
+          $divWrapper.append($div);          
+        });
+
+        const $oldWrapper = document.querySelector(".note-div > div");
+        $oldWrapper.parentNode.replaceChild($divWrapper, $oldWrapper);
+
+        const $btnDone = document.querySelectorAll(".btn-done");
+        $btnDone.forEach(item => {
+          item.addEventListener("click", e => {
+            toDo.checkDone(e.target.parentElement.className);            
+          });          
+        });
+
+        const $btnDelete = document.querySelectorAll(".btn-delete");
+        $btnDelete.forEach(item => {
+          item.addEventListener("click", e => {
+            const conFirm = confirm("Are u really want to delete this Note??");
+            if (conFirm){
+              toDo.deleteTask(e.target.parentElement.className);            
+            };
+          });          
+        });
+      };
+
+      document.body.addEventListener("click", () => {
+        renderHtml();
+      });
+      document.body.addEventListener("keypress", e => {
+        if (e.keyCode === 13) {
+          renderHtml();
+        }
+      });
+      
+    </script>
+  </body>
+</html>
